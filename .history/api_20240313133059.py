@@ -17,6 +17,7 @@ api_endpoint = "https://threed-model-management.onrender.com/model-management-sy
 headers = {
     "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJCbnVIRzQxbXpkdE1ZMjhuM3JSeCIsIm9yZ2FuaXphdGlvbklkIjoieU9oOWhBYmQ0RmZ1OTRtUHBLcjgiLCJpYXQiOjE3MDEwNjE5NTl9.cZ2xkoMJzvyaMMUYYm15XiG4xA9YmFS8fuZJBpf6d4Y"
 }
+label_dict = dict()
 # Make a GET request to the API
 response = requests.post(api_endpoint,headers=headers)
 base_path = './dataset/api_dataset/'
@@ -28,6 +29,9 @@ device = "cuda" if torch.cuda.is_available() else "cpu"
 model, _, preprocess = open_clip.create_model_and_transforms(model_name,
                                                              device = device,
                                                              pretrained=pretrained)
+query_classes = []
+q_batch =  []
+count = 0
 #print(preprocess)
 # Define transforms for each augmentation
 preprocess_original = preprocess  # Your original preprocess function for clear RGB images
@@ -60,10 +64,6 @@ def read_root():
 
 @app.get("/generate/")
 def generate_json():
-    label_dict = dict()
-    query_classes = []
-    q_batch =  []
-    count = 0
     # Check if the request was successful (status code 200)
     if response.status_code == 200:
         # Parse the response as JSON (assuming the API returns JSON data)
@@ -107,13 +107,14 @@ def generate_json():
         
         embedding_array = q_embeddings.tolist()
         data = {"q_embedding": embedding_array, "query_classes": query_classes}
-        print(len(embedding_array))
+        label = {"label":label_dict}
+        
         json_dump_path = os.path.join(json_path, "data.json")
-        labelJson_dump_path = os.path.join(json_path, "label.json")
+        labelJson_dump_path = os.path.join(json_path, "data.json")
         with open(json_dump_path, "w") as f:
             json.dump(data, f)
-        with open(labelJson_dump_path, 'w') as f:
-            json.dump(label_dict, f)
+        with open( labelJson_dump_path, 'w') as f:
+             json.dump(LABEL, f)
         
     else:
         # If the request was not successful, print an error message
@@ -123,18 +124,9 @@ def generate_json():
     
     return {"Finish generate embedding"}
 
-@app.get("/download_em/")
-async def download_em(response: Response):
+@app.get("/download/")
+async def download_json(response: Response):
     json_file_path = os.path.join(json_path, "data.json")  # Path to your JSON file
-    if os.path.exists(json_file_path):
-        return FileResponse(json_file_path, media_type='application/json')
-    else:
-        response.status_code = 404
-        return {"error": "JSON file not found"}
-
-@app.get("/download_label/")
-async def download_label(response: Response):
-    json_file_path = os.path.join(json_path, "label.json")  # Path to your JSON file
     if os.path.exists(json_file_path):
         return FileResponse(json_file_path, media_type='application/json')
     else:

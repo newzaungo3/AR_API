@@ -107,7 +107,7 @@ def generate_json():
         
         embedding_array = q_embeddings.tolist()
         data = {"q_embedding": embedding_array, "query_classes": query_classes}
-        print(len(embedding_array))
+        print(embedding_array.shape)
         json_dump_path = os.path.join(json_path, "data.json")
         labelJson_dump_path = os.path.join(json_path, "label.json")
         with open(json_dump_path, "w") as f:

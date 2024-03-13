@@ -17,6 +17,7 @@ api_endpoint = "https://threed-model-management.onrender.com/model-management-sy
 headers = {
     "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJCbnVIRzQxbXpkdE1ZMjhuM3JSeCIsIm9yZ2FuaXphdGlvbklkIjoieU9oOWhBYmQ0RmZ1OTRtUHBLcjgiLCJpYXQiOjE3MDEwNjE5NTl9.cZ2xkoMJzvyaMMUYYm15XiG4xA9YmFS8fuZJBpf6d4Y"
 }
+label_dict = dict()
 # Make a GET request to the API
 response = requests.post(api_endpoint,headers=headers)
 base_path = './dataset/api_dataset/'
@@ -60,7 +61,6 @@ def read_root():
 
 @app.get("/generate/")
 def generate_json():
-    label_dict = dict()
     query_classes = []
     q_batch =  []
     count = 0
@@ -107,7 +107,7 @@ def generate_json():
         
         embedding_array = q_embeddings.tolist()
         data = {"q_embedding": embedding_array, "query_classes": query_classes}
-        print(len(embedding_array))
+        
         json_dump_path = os.path.join(json_path, "data.json")
         labelJson_dump_path = os.path.join(json_path, "label.json")
         with open(json_dump_path, "w") as f:
